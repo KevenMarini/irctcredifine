@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRCTC - Passenger Details & Booking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+    <style>
+        /* Split Content Area */
+        .content-area { flex-grow: 1; overflow-y: auto; display: flex; }
+        .main-col { width: 62%; padding: 40px 48px; border-right: 1px solid var(--line-strong); background: var(--paper); overflow-y: auto; }
+        .side-col { width: 38%; padding: 40px 36px; background: var(--surface); overflow-y: auto; }
+        
+        h1 { font-family: var(--font-script); font-size: 44px; font-weight: normal; margin-bottom: 24px; line-height: 1; }
+        h2 { font-size: 15px; font-weight: 700; margin-bottom: 16px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        
+        /* Passenger Cards */
+        .passenger-card { border: 1px solid var(--line-strong); padding: 20px; margin-bottom: 18px; background: var(--surface); box-shadow: 4px 4px 0 rgba(51, 48, 59, 0.05); position: relative; }
+        .passenger-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+        .passenger-num { font-weight: 700; font-size: 13px; text-transform: uppercase; color: var(--accent-blush); }
+        
+        .form-row { display: grid; grid-template-columns: 2.5fr 1fr 1.5fr; gap: 14px; margin-bottom: 14px; }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+        
+        label { display: block; font-size: 11px; color: var(--ink-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        input[type="text"], input[type="number"], select { width: 100%; height: 42px; border: 1px solid var(--line-strong); background: var(--paper); padding: 0 14px; font-family: var(--font-grotesque); font-size: 14px; color: var(--ink); outline: none; }
+        input:focus, select:focus { border-color: var(--accent-blush); background: var(--surface); }
+        
+        .btn-delete-p { background: transparent; border: none; color: var(--accent-red); cursor: pointer; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .btn-delete-p:hover { text-decoration: underline; }
+
+        .btn-outline { background: var(--surface); border: 2px solid var(--ink); border-radius: 6px; font-size: 13px; font-weight: 700; text-transform: uppercase; padding: 12px 20px; cursor: pointer; box-shadow: 0 4px 0 var(--ink); transform: translateY(0); transition: transform 0.1s, box-shadow 0.1s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-outline:hover { transform: translateY(2px); box-shadow: 0 2px 0 var(--ink); }
+        .btn-outline:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+
+        /* Preferences Box */
+        .pref-box { background: var(--surface); border: 1px solid var(--line-strong); padding: 20px; margin-top: 24px; }
+        .pref-item { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13px; cursor: pointer; }
+        .pref-item:last-child { margin-bottom: 0; }
+        
+        /* Summary Panel */
+        .train-summary-card { font-size: 14px; line-height: 1.6; margin-bottom: 24px; padding: 20px; background: var(--paper); border: 1px solid var(--line-strong); }
+        .train-summary-name { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--ink); }
+        
+        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dotted var(--line-strong); font-size: 13px; }
+        .summary-total { display: flex; justify-content: space-between; padding: 18px 0; font-size: 24px; font-weight: 700; border-top: 2px solid var(--ink); margin-top: 16px; font-family: var(--font-script); }
+        
+        .btn-pay { width: 100%; height: 54px; background: var(--accent-blush); color: var(--surface); border: none; border-radius: 6px; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; box-shadow: 0 4px 0 #C2410C; transform: translateY(0); transition: transform 0.1s, box-shadow 0.1s, background-color 0.15s; margin-top: 16px; }
+        .btn-pay:hover { transform: translateY(2px); box-shadow: 0 2px 0 #C2410C; background-color: var(--accent-blush-hover); }
+        .btn-pay:active { transform: translateY(4px); box-shadow: 0 0 0 #C2410C; }
+
+        /* Payment Gateway Modal Styles */
+        .pay-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--line-strong); margin-bottom: 20px; }
+        .pay-tab { padding: 10px 16px; cursor: pointer; font-size: 13px; font-weight: 700; border-bottom: 3px solid transparent; text-transform: uppercase; }
+        .pay-tab.active { border-bottom-color: var(--accent-blush); color: var(--accent-blush); }
+        .pay-view { display: none; }
+        .pay-view.active { display: block; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            IRCTC <span class="badge-ir">OFFICIAL</span>
+        </a>
+        <ul class="nav-menu">
+            <li><a href="index.html" class="nav-item">Book Ticket</a></li>
+            <li><a href="trains.html" class="nav-item active">Search Trains</a></li>
+            <li><a href="profile.html" class="nav-item">PNR Enquiry</a></li>
+            <li><a href="charts.html" class="nav-item">Charts / Vacancy</a></li>
+            
+            <li class="nav-section"><div class="nav-label">Services</div></li>
+            <li><a href="ecatering.html" class="nav-item">E-Catering</a></li>
+            <li><a href="rooms.html" class="nav-item">Retiring Rooms</a></li>
+            <li><a href="places.html" class="nav-item">Tourism</a></li>
+            
+            <li class="nav-section"><div class="nav-label">Account</div></li>
+            <li><a href="profile.html" class="nav-item">My Bookings</a></li>
+            <li><a href="master_list.html" class="nav-item">Master List</a></li>
+            <li><a href="loyalty.html" class="nav-item">Loyalty</a></li>
+            <li><a href="wallet.html" class="nav-item">E-Wallet</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-wrapper">
+        <header class="topbar">
+            <button class="btn-back" onclick="history.back()">← Back</button>
+            <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted);">
+                Booking Process &bull; Step 2: Passenger Details & Payment
+            </div>
+            <div class="top-links">
+                <span id="live-clock">18-Oct-2026 [14:49:04]</span>
+                <span style="color: var(--line-strong);">|</span>
+                <div id="header-user-slot"></div>
+            </div>
+        </header>
+
+        <div class="content-area">
+            <!-- Left Main Column: Passenger Input -->
+            <div class="main-col">
+                <div class="header-actions">
+                    <h1>Passenger Info</h1>
+                    <button class="btn-secondary" onclick="openMasterListPicker()">
+                        📋 Import From Master List
+                    </button>
+                </div>
+                
+                <div id="passengers-container">
+                    <!-- Populated dynamically -->
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-top: 16px;">
+                    <button class="btn-outline" onclick="addPassengerCard()">+ Add Passenger</button>
+                </div>
+
+                <!-- Journey Preferences -->
+                <div class="pref-box">
+                    <h2>Preferences & Travel Options</h2>
+                    <label class="pref-item">
+                        <input type="checkbox" id="pref-auto-upgrade" checked style="width:18px; height:18px;">
+                        <span>Consider for <strong>Auto Upgradation</strong> (Free upgrade to higher class if vacant)</span>
+                    </label>
+                    <label class="pref-item">
+                        <input type="checkbox" id="pref-catering" checked onchange="updateFareCalculations()" style="width:18px; height:18px;">
+                        <span>Include <strong>IRCTC Onboard Catering</strong> (Fresh Meals & Morning Tea, ₹250/passenger)</span>
+                    </label>
+                    <label class="pref-item">
+                        <input type="checkbox" id="pref-insurance" checked onchange="updateFareCalculations()" style="width:18px; height:18px;">
+                        <span>Opt for <strong>Travel Insurance</strong> (₹ 0.45 / person covering up to ₹ 10 Lakhs)</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Right Side Column: Journey & Fare Summary -->
+            <div class="side-col">
+                <h2>Journey Details</h2>
+                <div class="train-summary-card">
+                    <div class="train-summary-name" id="sum-train-name">Rajdhani Express (12951)</div>
+                    <div>
+                        <strong id="sum-from">NDLS</strong> (<span id="sum-dep">16:30</span>) → 
+                        <strong id="sum-to">BCT</strong> (<span id="sum-arr">08:35</span>)
+                    </div>
+                    <div style="margin-top: 6px; color: var(--ink-muted); font-size: 13px;">
+                        Date: <strong id="sum-date" style="color:var(--ink);">24 Nov 2026</strong> | 
+                        Class: <strong id="sum-class" style="color:var(--ink);">2A</strong> | 
+                        Quota: <strong id="sum-quota" style="color:var(--ink);">General</strong>
+                    </div>
+                </div>
+                
+                <h2>Fare Breakdown</h2>
+                <div class="summary-item">
+                    <span id="fare-base-label">Ticket Fare (1 Adult)</span>
+                    <span id="fare-base-val">₹ 2,850.00</span>
+                </div>
+                <div class="summary-item" id="row-catering">
+                    <span id="fare-catering-label">Catering Charges (1 Meal)</span>
+                    <span id="fare-catering-val">₹ 250.00</span>
+                </div>
+                <div class="summary-item" id="row-insurance">
+                    <span>Travel Insurance</span>
+                    <span id="fare-insurance-val">₹ 0.45</span>
+                </div>
+                <div class="summary-item">
+                    <span>Convenience Fee (incl. GST)</span>
+                    <span>₹ 35.40</span>
+                </div>
+                
+                <div class="summary-total">
+                    <span>Total Fare</span>
+                    <span id="fare-total-val" style="color:var(--accent-blush);">₹ 3,135.85</span>
+                </div>
+
+                <div style="font-size: 12px; color: var(--ink-muted); line-height: 1.5; margin-bottom: 16px;">
+                    * Cancellation charges will be applicable as per Railway rules. By proceeding, you agree to IRCTC Terms of Service.
+                </div>
+                
+                <button class="btn-pay" onclick="openPaymentGateway()">Proceed to Pay</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Master List Selection Modal -->
+    <div id="master-picker-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title">Select from Master List</div>
+                <button class="modal-close" onclick="IRCTC.closeModal('master-picker-modal')">×</button>
+            </div>
+            <div class="modal-body" id="master-picker-list">
+                <!-- Injected via JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="IRCTC.closeModal('master-picker-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Gateway Modal -->
+    <div id="payment-modal" class="modal-overlay">
+        <div class="modal-box wide">
+            <div class="modal-header">
+                <div class="modal-title">IRCTC Payment Gateway</div>
+                <button class="modal-close" onclick="IRCTC.closeModal('payment-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: var(--paper); padding: 14px 18px; border: 1px solid var(--line-strong); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-size: 12px; text-transform: uppercase; color: var(--ink-muted); font-weight: 700;">Amount Payable</span>
+                        <div style="font-family: var(--font-script); font-size: 28px; color: var(--accent-blush);" id="modal-pay-amount">₹ 3,135.85</div>
+                    </div>
+                    <div style="text-align: right; font-size: 13px;">
+                        <span id="modal-pay-train">Rajdhani Express (12951)</span><br>
+                        <strong id="modal-pay-pax">1 Passenger</strong>
+                    </div>
+                </div>
+
+                <div class="pay-tabs">
+                    <div class="pay-tab active" onclick="switchPayTab('wallet')">IRCTC E-Wallet</div>
+                    <div class="pay-tab" onclick="switchPayTab('loyalty')">SBI Loyalty Points</div>
+                    <div class="pay-tab" onclick="switchPayTab('upi')">BHIM UPI / QR</div>
+                    <div class="pay-tab" onclick="switchPayTab('card')">Credit / Debit Card</div>
+                </div>
+
+                <!-- Pay View: IRCTC Wallet -->
+                <div class="pay-view active" id="pay-view-wallet">
+                    <div style="border: 1px solid var(--line-strong); padding: 20px; background: var(--surface);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div>
+                                <h3 style="font-size: 16px; font-weight: 700;">IRCTC E-Wallet Account</h3>
+                                <p style="color: var(--ink-muted); font-size: 13px;">Instant booking confirmation without gateway redirects</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 11px; text-transform: uppercase; color: var(--ink-muted); font-weight: 700;">Available Balance</div>
+                                <div style="font-size: 20px; font-weight: 700; color: var(--accent-sage);" id="pay-wallet-balance">₹ 4,500.00</div>
+                            </div>
+                        </div>
+                        <button class="btn-primary" style="width: 100%;" onclick="confirmPayment('E-Wallet')">Pay with E-Wallet</button>
+                    </div>
+                </div>
+
+                <!-- Pay View: Loyalty Points -->
+                <div class="pay-view" id="pay-view-loyalty">
+                    <div style="border: 1px solid var(--line-strong); padding: 20px; background: var(--surface);">
+                        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">SBI Railway Co-branded Card</h3>
+                        <div style="margin-bottom: 16px; font-size: 13px; color: var(--ink-muted);">
+                            Available Points: <strong style="color:var(--ink);" id="pay-loyalty-pts">12,450 Points</strong> (Worth ₹ 3,112.50)
+                        </div>
+                        <p style="font-size: 13px; margin-bottom: 16px;">Redeem your accumulated railway loyalty points for this journey ticket.</p>
+                        <button class="btn-primary" style="width: 100%;" onclick="confirmPayment('Loyalty Points')">Redeem Points & Book</button>
+                    </div>
+                </div>
+
+                <!-- Pay View: UPI -->
+                <div class="pay-view" id="pay-view-upi">
+                    <div style="text-align: center; padding: 20px; border: 1px solid var(--line-strong);">
+                        <div style="width: 160px; height: 160px; margin: 0 auto 16px auto; background: #fff; border: 2px dashed var(--line-strong); display: flex; align-items: center; justify-content: center; font-family: monospace; font-size: 12px; flex-direction: column; gap: 8px;">
+                            <span style="font-size: 48px;">📱</span>
+                            <span>SCAN TO PAY</span>
+                        </div>
+                        <p style="font-size: 13px; color: var(--ink-muted); margin-bottom: 16px;">Scan with Google Pay, PhonePe, Paytm or BHIM UPI</p>
+                        <button class="btn-primary" style="width: 100%; max-width: 320px;" onclick="confirmPayment('BHIM UPI')">Simulate UPI Payment Success</button>
+                    </div>
+                </div>
+
+                <!-- Pay View: Card -->
+                <div class="pay-view" id="pay-view-card">
+                    <div style="border: 1px solid var(--line-strong); padding: 20px;">
+                        <div class="form-group">
+                            <label>Card Number</label>
+                            <input type="text" placeholder="XXXX XXXX XXXX 4012" value="4532 8920 1823 4012">
+                        </div>
+                        <div class="form-row-2">
+                            <div>
+                                <label>Expiry Date</label>
+                                <input type="text" placeholder="MM/YY" value="12/28">
+                            </div>
+                            <div>
+                                <label>CVV</label>
+                                <input type="password" placeholder="123" value="892">
+                            </div>
+                            <div>
+                                <label>Cardholder Name</label>
+                                <input type="text" value="RAJESH KUMAR">
+                            </div>
+                        </div>
+                        <button class="btn-primary" style="width: 100%; margin-top: 16px;" onclick="confirmPayment('Credit/Debit Card')">Pay Now</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="IRCTC.closeModal('payment-modal')">Cancel Transaction</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+        // Retrieve booking context or set realistic fallback
+        const savedCtx = JSON.parse(sessionStorage.getItem("irctc_pending_booking") || "null");
+        
+        const bookingData = savedCtx || {
+            trainNumber: "12951",
+            trainName: "Rajdhani Express",
+            from: "New Delhi (NDLS)",
+            fromCode: "NDLS",
+            to: "Mumbai Central (BCT)",
+            toCode: "BCT",
+            depTime: "16:30",
+            arrTime: "08:35",
+            journeyDate: "2026-11-24",
+            classCode: "2A",
+            className: "AC 2 Tier",
+            farePerAdult: 2850,
+            quota: "General",
+            status: "Confirmed"
+        };
+
+        // Populate side summary
+        document.getElementById("sum-train-name").textContent = `${bookingData.trainName} (${bookingData.trainNumber})`;
+        document.getElementById("sum-from").textContent = bookingData.fromCode;
+        document.getElementById("sum-to").textContent = bookingData.toCode;
+        document.getElementById("sum-dep").textContent = bookingData.depTime;
+        document.getElementById("sum-arr").textContent = bookingData.arrTime;
+        document.getElementById("sum-date").textContent = bookingData.journeyDate;
+        document.getElementById("sum-class").textContent = `${bookingData.classCode} (${bookingData.className})`;
+        document.getElementById("sum-quota").textContent = bookingData.quota;
+
+        // Dynamic Passengers Management
+        let passengers = [
+            { name: "RAJESH KUMAR", age: 34, gender: "Male", berth: "Lower", food: "Veg", nationality: "India" }
+        ];
+
+        function renderPassengers() {
+            const container = document.getElementById("passengers-container");
+            container.innerHTML = passengers.map((p, idx) => `
+                <div class="passenger-card" id="p-card-${idx}">
+                    <div class="passenger-card-header">
+                        <span class="passenger-num">Passenger #${idx + 1}</span>
+                        ${passengers.length > 1 ? `<button class="btn-delete-p" onclick="removePassenger(${idx})">✕ Remove</button>` : ''}
+                    </div>
+                    
+                    <div class="form-row">
+                        <div>
+                            <label>Full Name (as per Govt ID)</label>
+                            <input type="text" placeholder="Full Name" value="${p.name || ''}" oninput="updatePassengerField(${idx}, 'name', this.value)">
+                        </div>
+                        <div>
+                            <label>Age</label>
+                            <input type="number" min="1" max="120" placeholder="Age" value="${p.age || ''}" oninput="updatePassengerField(${idx}, 'age', this.value)">
+                        </div>
+                        <div>
+                            <label>Gender</label>
+                            <select onchange="updatePassengerField(${idx}, 'gender', this.value)">
+                                <option value="Male" ${p.gender === 'Male' ? 'selected' : ''}>Male</option>
+                                <option value="Female" ${p.gender === 'Female' ? 'selected' : ''}>Female</option>
+                                <option value="Transgender" ${p.gender === 'Transgender' ? 'selected' : ''}>Transgender</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row-2">
+                        <div>
+                            <label>Berth Preference</label>
+                            <select onchange="updatePassengerField(${idx}, 'berth', this.value)">
+                                <option value="No Preference" ${p.berth === 'No Preference' ? 'selected' : ''}>No Preference</option>
+                                <option value="Lower" ${p.berth === 'Lower' ? 'selected' : ''}>Lower Berth</option>
+                                <option value="Middle" ${p.berth === 'Middle' ? 'selected' : ''}>Middle Berth</option>
+                                <option value="Upper" ${p.berth === 'Upper' ? 'selected' : ''}>Upper Berth</option>
+                                <option value="Side Lower" ${p.berth === 'Side Lower' ? 'selected' : ''}>Side Lower</option>
+                                <option value="Side Upper" ${p.berth === 'Side Upper' ? 'selected' : ''}>Side Upper</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Food Choice</label>
+                            <select onchange="updatePassengerField(${idx}, 'food', this.value)">
+                                <option value="Veg" ${p.food === 'Veg' ? 'selected' : ''}>Vegetarian</option>
+                                <option value="Non-Veg" ${p.food === 'Non-Veg' ? 'selected' : ''}>Non-Vegetarian</option>
+                                <option value="Jain Meal" ${p.food === 'Jain Meal' ? 'selected' : ''}>Jain Meal</option>
+                                <option value="No Food" ${p.food === 'No Food' ? 'selected' : ''}>No Food</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Nationality</label>
+                            <select onchange="updatePassengerField(${idx}, 'nationality', this.value)">
+                                <option value="India">India</option>
+                                <option value="NRI">NRI / Foreign National</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+
+            updateFareCalculations();
+        }
+
+        function updatePassengerField(idx, field, val) {
+            if (passengers[idx]) {
+                passengers[idx][field] = val;
+            }
+        }
+
+        function addPassengerCard() {
+            if (passengers.length >= 6) {
+                IRCTC.showToast("Maximum 6 passengers allowed per ticket booking", "error");
+                return;
+            }
+            passengers.push({
+                name: "",
+                age: "",
+                gender: "Male",
+                berth: "No Preference",
+                food: "Veg",
+                nationality: "India"
+            });
+            renderPassengers();
+        }
+
+        function removePassenger(idx) {
+            if (passengers.length > 1) {
+                passengers.splice(idx, 1);
+                renderPassengers();
+            }
+        }
+
+        // Fare Calculations
+        let calculatedTotalFare = 0;
+
+        function updateFareCalculations() {
+            const count = passengers.length;
+            const basePerAdult = bookingData.farePerAdult || 2850;
+            const ticketFare = basePerAdult * count;
+
+            const cateringOpted = document.getElementById("pref-catering").checked;
+            const cateringFare = cateringOpted ? (250 * count) : 0;
+            document.getElementById("row-catering").style.display = cateringOpted ? "flex" : "none";
+
+            const insuranceOpted = document.getElementById("pref-insurance").checked;
+            const insuranceFare = insuranceOpted ? (0.45 * count) : 0;
+            document.getElementById("row-insurance").style.display = insuranceOpted ? "flex" : "none";
+
+            const convenienceFee = 35.40;
+            calculatedTotalFare = ticketFare + cateringFare + insuranceFare + convenienceFee;
+
+            document.getElementById("fare-base-label").textContent = `Ticket Fare (${count} Adult${count > 1 ? 's' : ''})`;
+            document.getElementById("fare-base-val").textContent = `₹ ${ticketFare.toFixed(2)}`;
+            document.getElementById("fare-catering-label").textContent = `Catering Charges (${count} Meal${count > 1 ? 's' : ''})`;
+            document.getElementById("fare-catering-val").textContent = `₹ ${cateringFare.toFixed(2)}`;
+            document.getElementById("fare-insurance-val").textContent = `₹ ${insuranceFare.toFixed(2)}`;
+            document.getElementById("fare-total-val").textContent = `₹ ${calculatedTotalFare.toFixed(2)}`;
+        }
+
+        // Master List Picker
+        function openMasterListPicker() {
+            const list = IRCTC.getMasterList();
+            const container = document.getElementById("master-picker-list");
+            if (list.length === 0) {
+                container.innerHTML = `<p style="color:var(--ink-muted); padding:20px 0;">No saved passengers in Master List. You can add them from the Master List tab.</p>`;
+            } else {
+                container.innerHTML = `
+                    <p style="font-size:13px; color:var(--ink-muted); margin-bottom:16px;">Click on a passenger to append them to your journey:</p>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        ${list.map(p => `
+                            <div style="border:1px solid var(--line-strong); padding:12px 16px; background:var(--paper); display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="selectMasterPassenger('${p.id}')">
+                                <div>
+                                    <strong>${p.name}</strong> (${p.age} yrs, ${p.gender})
+                                    <div style="font-size:11px; color:var(--ink-muted);">${p.idType}: ${p.idNumber || 'Verified'} | Berth: ${p.berthPreference || 'No Preference'}</div>
+                                </div>
+                                <button class="btn-secondary" style="font-size:11px; padding:6px 12px;">+ Select</button>
+                            </div>
+                        `).join("")}
+                    </div>
+                `;
+            }
+            IRCTC.openModal("master-picker-modal");
+        }
+
+        function selectMasterPassenger(id) {
+            const list = IRCTC.getMasterList();
+            const p = list.find(item => item.id === id);
+            if (!p) return;
+
+            // Check if first passenger is empty
+            if (passengers.length === 1 && !passengers[0].name) {
+                passengers[0] = {
+                    name: p.name,
+                    age: p.age,
+                    gender: p.gender,
+                    berth: p.berthPreference || "No Preference",
+                    food: "Veg",
+                    nationality: "India"
+                };
+            } else {
+                if (passengers.length >= 6) {
+                    IRCTC.showToast("Maximum 6 passengers allowed", "error");
+                    return;
+                }
+                passengers.push({
+                    name: p.name,
+                    age: p.age,
+                    gender: p.gender,
+                    berth: p.berthPreference || "No Preference",
+                    food: "Veg",
+                    nationality: "India"
+                });
+            }
+
+            IRCTC.closeModal("master-picker-modal");
+            IRCTC.showToast(`Added ${p.name} from Master List`, "success");
+            renderPassengers();
+        }
+
+        // Payment Gateway Logic
+        function openPaymentGateway() {
+            // Validation
+            for (let i = 0; i < passengers.length; i++) {
+                if (!passengers[i].name || passengers[i].name.trim() === "") {
+                    IRCTC.showToast(`Please enter passenger name for Passenger #${i+1}`, "error");
+                    return;
+                }
+                if (!passengers[i].age || isNaN(passengers[i].age) || passengers[i].age <= 0) {
+                    IRCTC.showToast(`Please enter a valid age for Passenger #${i+1}`, "error");
+                    return;
+                }
+            }
+
+            const wallet = IRCTC.getWallet();
+            const loyalty = IRCTC.getLoyalty();
+
+            document.getElementById("modal-pay-amount").textContent = `₹ ${calculatedTotalFare.toFixed(2)}`;
+            document.getElementById("modal-pay-train").textContent = `${bookingData.trainName} (${bookingData.trainNumber})`;
+            document.getElementById("modal-pay-pax").textContent = `${passengers.length} Passenger${passengers.length > 1 ? 's' : ''}`;
+            document.getElementById("pay-wallet-balance").textContent = `₹ ${wallet.balance.toFixed(2)}`;
+            document.getElementById("pay-loyalty-pts").textContent = `${loyalty.points.toLocaleString()} Points`;
+
+            IRCTC.openModal("payment-modal");
+        }
+
+        function switchPayTab(tabName) {
+            document.querySelectorAll(".pay-tabs .pay-tab").forEach(t => t.classList.remove("active"));
+            document.querySelectorAll(".pay-view").forEach(v => v.classList.remove("active"));
+            
+            event.target.classList.add("active");
+            document.getElementById(`pay-view-${tabName}`).classList.add("active");
+        }
+
+        function confirmPayment(paymentMode) {
+            // Check Wallet funds if selected
+            if (paymentMode === "E-Wallet") {
+                const w = IRCTC.getWallet();
+                if (w.balance < calculatedTotalFare) {
+                    IRCTC.showToast("Insufficient E-Wallet balance! Please top up or choose UPI/Card.", "error");
+                    return;
+                }
+                IRCTC.debitWallet(calculatedTotalFare, `Booking Train ${bookingData.trainNumber}`);
+            }
+
+            // Assign coach and berth numbers
+            const coachPrefix = bookingData.classCode === "1A" ? "H1" : (bookingData.classCode === "2A" ? "A1" : "B2");
+            const confirmedPassengers = passengers.map((p, i) => {
+                const berthNum = 18 + i * 3;
+                return {
+                    name: p.name,
+                    age: p.age,
+                    gender: p.gender,
+                    berth: `${berthNum} (${p.berth === 'No Preference' ? 'Lower' : p.berth})`,
+                    status: "CNF"
+                };
+            });
+
+            const newBooking = {
+                trainNumber: bookingData.trainNumber,
+                trainName: bookingData.trainName,
+                from: bookingData.from,
+                fromCode: bookingData.fromCode,
+                to: bookingData.to,
+                toCode: bookingData.toCode,
+                depTime: bookingData.depTime,
+                arrTime: bookingData.arrTime,
+                journeyDate: bookingData.journeyDate,
+                formattedDate: bookingData.journeyDate,
+                classCode: bookingData.classCode,
+                className: bookingData.className,
+                quota: bookingData.quota,
+                status: "Confirmed",
+                coach: coachPrefix,
+                totalFare: calculatedTotalFare,
+                paymentMode: paymentMode,
+                passengers: confirmedPassengers
+            };
+
+            const created = IRCTC.createBooking(newBooking);
+            IRCTC.closeModal("payment-modal");
+            IRCTC.showToast(`Payment of ₹${calculatedTotalFare.toFixed(2)} successful! PNR: ${created.pnr}`, "success");
+
+            setTimeout(() => {
+                window.location.href = `profile.html?pnr=${created.pnr}&newBooking=true`;
+            }, 800);
+        }
+
+        // Initial setup
+        renderPassengers();
+    </script>
+</body>
+</html>

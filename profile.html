@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRCTC - Profile & Bookings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+    <style>
+        /* Content Area */
+        .content-area { flex-grow: 1; overflow-y: auto; padding: 40px 48px; background: var(--paper); }
+        
+        h1 { font-family: var(--font-script); font-size: 48px; font-weight: normal; margin-bottom: 28px; line-height: 1; }
+        h2 { font-size: 15px; font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* PNR Tracker Bar */
+        .pnr-search-bar { background: var(--surface); border: 2px solid var(--ink); padding: 20px 24px; margin-bottom: 32px; box-shadow: 6px 6px 0 rgba(0,0,0,0.06); display: flex; gap: 16px; align-items: flex-end; }
+        .pnr-input-group { flex-grow: 1; }
+        .pnr-input-group label { display: block; font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--ink-muted); margin-bottom: 6px; }
+        .pnr-input-group input { width: 100%; height: 46px; border: 1px solid var(--line-strong); background: var(--paper); padding: 0 16px; font-family: monospace; font-size: 18px; letter-spacing: 0.12em; color: var(--ink); outline: none; }
+        .pnr-input-group input:focus { border-color: var(--accent-blush); background: var(--surface); }
+
+        .btn-pnr { height: 46px; background: var(--ink); color: var(--surface); border: none; padding: 0 28px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; box-shadow: 0 4px 0 #0F172A; transition: transform 0.1s, box-shadow 0.1s; border-radius: 4px; }
+        .btn-pnr:hover { transform: translateY(2px); box-shadow: 0 2px 0 #0F172A; }
+        .btn-pnr:active { transform: translateY(4px); box-shadow: 0 0 0 #0F172A; }
+
+        /* Journey Tabs */
+        .journey-tabs { display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--line-strong); padding-bottom: 12px; }
+        .j-tab { background: transparent; border: none; font-size: 14px; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; cursor: pointer; padding: 8px 16px; border-radius: 4px; }
+        .j-tab.active { background: var(--ink); color: var(--surface); }
+
+        /* Ticket Cards */
+        .ticket-list { display: flex; flex-direction: column; gap: 18px; max-width: 950px; }
+        .ticket-card { border: 1px solid var(--line-strong); background: var(--surface); padding: 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 6px 6px 0 rgba(51, 48, 59, 0.03); transition: transform 0.15s, box-shadow 0.15s; }
+        .ticket-card:hover { border-color: var(--ink); box-shadow: 8px 8px 0 rgba(51, 48, 59, 0.08); }
+        .ticket-pnr { font-family: var(--font-script); font-size: 30px; margin-bottom: 6px; letter-spacing: 0.03em; }
+        .ticket-details { font-size: 14px; line-height: 1.6; color: var(--ink-muted); }
+        
+        .ticket-actions { display: flex; flex-direction: column; gap: 8px; min-width: 170px; }
+        .btn-view { border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface); padding: 10px 18px; font-family: var(--font-grotesque); font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; box-shadow: 0 3px 0 var(--line-strong); transform: translateY(0); transition: transform 0.1s, box-shadow 0.1s; text-align: center; color: var(--ink); }
+        .btn-view:hover { transform: translateY(1px); box-shadow: 0 2px 0 var(--line-strong); }
+        .btn-view:active { transform: translateY(3px); box-shadow: 0 0 0 var(--line-strong); }
+        .btn-view.primary { background: var(--accent-blush); color: var(--surface); border-color: var(--accent-blush); box-shadow: 0 3px 0 #C2410C; }
+        .btn-view.danger { border-color: var(--accent-red); color: var(--accent-red); background: #FEF2F2; box-shadow: 0 3px 0 #DC2626; }
+        
+        .food-link { font-size: 11px; text-transform: uppercase; color: var(--accent-blush); text-decoration: underline; font-weight: 700; text-align: center; display: block; margin-top: 4px; }
+        .food-link:hover { color: var(--accent-blush-hover); }
+
+        /* PNR Result Modal Box */
+        .pnr-box-status { background: #F8FAFC; border: 1px solid var(--line-strong); padding: 18px; margin-bottom: 16px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            IRCTC <span class="badge-ir">OFFICIAL</span>
+        </a>
+        <ul class="nav-menu">
+            <li><a href="index.html" class="nav-item">Book Ticket</a></li>
+            <li><a href="trains.html" class="nav-item">Search Trains</a></li>
+            <li><a href="profile.html" class="nav-item active">PNR Enquiry</a></li>
+            <li><a href="charts.html" class="nav-item">Charts / Vacancy</a></li>
+            
+            <li class="nav-section"><div class="nav-label">Services</div></li>
+            <li><a href="ecatering.html" class="nav-item">E-Catering</a></li>
+            <li><a href="rooms.html" class="nav-item">Retiring Rooms</a></li>
+            <li><a href="places.html" class="nav-item">Tourism</a></li>
+            
+            <li class="nav-section"><div class="nav-label">Account</div></li>
+            <li><a href="profile.html" class="nav-item active">My Bookings</a></li>
+            <li><a href="master_list.html" class="nav-item">Master List</a></li>
+            <li><a href="loyalty.html" class="nav-item">Loyalty</a></li>
+            <li><a href="wallet.html" class="nav-item">E-Wallet</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-wrapper">
+        <header class="topbar">
+            <button class="btn-back" onclick="history.back()">← Back</button>
+            <div class="top-links">
+                <span id="live-clock">18-Oct-2026 [14:49:04]</span>
+                <span style="color: var(--line-strong);">|</span>
+                <div class="font-size-ctrl">
+                    <button onclick="IRCTC.setFontSize('13px')">A-</button>
+                    <button onclick="IRCTC.setFontSize('14px')" class="active">A</button>
+                    <button onclick="IRCTC.setFontSize('16px')">A+</button>
+                </div>
+                <span style="color: var(--line-strong);">|</span>
+                <div id="header-user-slot"></div>
+            </div>
+        </header>
+
+        <div class="content-area">
+            <h1>My Bookings & PNR Enquiry</h1>
+            
+            <!-- Live PNR Query Tool -->
+            <div class="pnr-search-bar">
+                <div class="pnr-input-group">
+                    <label for="pnr-search-input">Instant PNR Status Enquiry (10-Digit PNR)</label>
+                    <input type="text" id="pnr-search-input" maxlength="10" placeholder="Enter 10-Digit PNR Number...">
+                </div>
+                <button class="btn-pnr" onclick="handlePnrSearch()">Get Status</button>
+            </div>
+
+            <div class="journey-tabs">
+                <button class="j-tab active" id="tab-upcoming" onclick="switchJourneyTab('upcoming')">Upcoming Journeys</button>
+                <button class="j-tab" id="tab-cancelled" onclick="switchJourneyTab('cancelled')">Cancelled & Past Journeys</button>
+            </div>
+
+            <h2 id="section-title">
+                <span>Upcoming Bookings</span>
+                <span id="total-bookings-count" style="font-size:12px; font-weight:normal; color:var(--ink-muted);"></span>
+            </h2>
+            
+            <div class="ticket-list" id="bookings-container">
+                <!-- Injected via JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Cancellation Confirmation Modal -->
+    <div id="cancel-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title">Confirm Ticket Cancellation</div>
+                <button class="modal-close" onclick="IRCTC.closeModal('cancel-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 14px; margin-bottom: 16px;">Are you sure you want to cancel the following reservation?</p>
+                
+                <div style="background: var(--paper); border: 1px solid var(--line-strong); padding: 16px; margin-bottom: 16px;">
+                    <div>PNR: <strong id="cancel-pnr-text" style="font-family:monospace; font-size:16px;"></strong></div>
+                    <div id="cancel-train-text" style="font-weight: 700; margin-top: 4px;"></div>
+                    <div id="cancel-route-text" style="font-size: 13px; color: var(--ink-muted);"></div>
+                </div>
+
+                <div style="background: #FFFBEB; border: 1px solid var(--accent-sand); padding: 14px; font-size: 13px; margin-bottom: 16px; line-height: 1.5;">
+                    <div>Total Fare Paid: <strong id="cancel-fare-paid"></strong></div>
+                    <div>Clerkage Fee Deduction: <strong style="color:var(--accent-red);" id="cancel-clerkage-fee"></strong></div>
+                    <div style="border-top: 1px solid var(--line); margin-top: 8px; padding-top: 8px; font-size: 14px;">
+                        Estimated Refund to E-Wallet: <strong style="color:var(--accent-sage);" id="cancel-refund-amt"></strong>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="IRCTC.closeModal('cancel-modal')">Keep Ticket</button>
+                <button class="btn-danger" onclick="executeCancellation()">Confirm Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PNR Status Modal -->
+    <div id="pnr-status-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title">Live PNR Current Status</div>
+                <button class="modal-close" onclick="IRCTC.closeModal('pnr-status-modal')">×</button>
+            </div>
+            <div class="modal-body" id="pnr-status-content">
+                <!-- Injected via JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="IRCTC.closeModal('pnr-status-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+        let currentTab = "upcoming";
+        let targetCancelPnr = null;
+
+        // Check if query param has PNR
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryPnr = urlParams.get("pnr");
+        const isNewBooking = urlParams.get("newBooking");
+
+        if (isNewBooking) {
+            IRCTC.showToast("🎉 Booking Confirmed! Your E-Ticket is ready below.", "success");
+        }
+
+        if (queryPnr) {
+            document.getElementById("pnr-search-input").value = queryPnr;
+            setTimeout(() => {
+                handlePnrSearch(queryPnr);
+            }, 300);
+        }
+
+        function switchJourneyTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll(".journey-tabs .j-tab").forEach(t => t.classList.remove("active"));
+            if (tab === "upcoming") {
+                document.getElementById("tab-upcoming").classList.add("active");
+                document.getElementById("section-title").querySelector("span:first-child").textContent = "Upcoming Bookings";
+            } else {
+                document.getElementById("tab-cancelled").classList.add("active");
+                document.getElementById("section-title").querySelector("span:first-child").textContent = "Cancelled & Past Journeys";
+            }
+            renderBookings();
+        }
+
+        function renderBookings() {
+            const allBookings = IRCTC.getBookings();
+            const container = document.getElementById("bookings-container");
+
+            const filtered = allBookings.filter(b => {
+                if (currentTab === "upcoming") {
+                    return b.status === "Confirmed" || b.status === "Waitlisted";
+                } else {
+                    return b.status === "Cancelled" || b.status === "Completed";
+                }
+            });
+
+            document.getElementById("total-bookings-count").textContent = `(${filtered.length} Journeys)`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="background:var(--surface); border:1px solid var(--line-strong); padding:40px; text-align:center;">
+                        <div style="font-family:var(--font-script); font-size:28px; color:var(--ink-muted); margin-bottom:8px;">No ${currentTab} bookings found</div>
+                        <p style="font-size:13px; color:var(--ink-muted); margin-bottom:20px;">Ready for your next adventure? Find and book your train journey now.</p>
+                        <a href="index.html" class="btn-primary">Book New Ticket</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(b => {
+                const isConfirmed = b.status === "Confirmed";
+                const isWaitlist = b.status === "Waitlisted";
+                const isCancelled = b.status === "Cancelled";
+
+                let badgeClass = "confirmed";
+                if (isWaitlist) badgeClass = "waitlist";
+                if (isCancelled) badgeClass = "cancelled";
+
+                return `
+                    <div class="ticket-card" id="card-${b.pnr}">
+                        <div>
+                            <div class="status-badge ${badgeClass}">${b.status}</div>
+                            <div class="ticket-pnr">PNR: ${b.pnr}</div>
+                            <div class="ticket-details">
+                                <strong style="color: var(--ink); font-size:16px;">${b.trainName} (${b.trainNumber})</strong><br>
+                                ${b.from} (${b.depTime}) → ${b.to} (${b.arrTime}) | <strong>${b.formattedDate || b.journeyDate}</strong><br>
+                                Class: <strong>${b.classCode}</strong> | Quota: <strong>${b.quota || 'General'}</strong> | Passengers: <strong>${b.passengers.length}</strong><br>
+                                Coach & Berth: <strong>${b.coach ? b.coach + ' / ' + b.passengers.map(p => p.berth).join(', ') : 'WL'}</strong>
+                            </div>
+                        </div>
+                        <div class="ticket-actions">
+                            <button class="btn-view primary" onclick="IRCTC.showPrintTicketModal('${b.pnr}')">
+                                🖨️ Print / E-Ticket
+                            </button>
+                            
+                            <button class="btn-view" onclick="checkSpecificPnr('${b.pnr}')">
+                                Live Status
+                            </button>
+
+                            ${!isCancelled ? `
+                                <button class="btn-view danger" onclick="promptCancelTicket('${b.pnr}')">
+                                    Cancel Ticket
+                                </button>
+                                <a href="ecatering.html?pnr=${b.pnr}" class="food-link">Order Food for Seat 🍲</a>
+                            ` : `
+                                <span style="font-size:11px; color:var(--accent-red); font-weight:700; text-align:center;">Refund Credited to Wallet</span>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function handlePnrSearch(explicitPnr) {
+            const pnr = explicitPnr || document.getElementById("pnr-search-input").value.trim();
+            if (!pnr || pnr.length !== 10) {
+                IRCTC.showToast("Please enter a valid 10-digit PNR number", "error");
+                return;
+            }
+            checkSpecificPnr(pnr);
+        }
+
+        function checkSpecificPnr(pnr) {
+            const booking = IRCTC.getBookingByPnr(pnr);
+            const content = document.getElementById("pnr-status-content");
+
+            if (!booking) {
+                content.innerHTML = `
+                    <div style="text-align:center; padding:24px 0;">
+                        <span style="font-size:42px;">🔍</span>
+                        <h3 style="font-family:var(--font-script); font-size:24px; margin-top:8px;">PNR ${pnr} Not Found</h3>
+                        <p style="font-size:13px; color:var(--ink-muted); margin-top:4px;">No reservation records match this PNR number in the active database.</p>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="pnr-box-status">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <div>
+                                <span style="font-size:11px; text-transform:uppercase; color:var(--ink-muted);">PNR Number</span>
+                                <div style="font-family:monospace; font-size:22px; font-weight:bold;">${booking.pnr}</div>
+                            </div>
+                            <span class="status-badge ${booking.status === 'Confirmed' ? 'confirmed' : (booking.status === 'Cancelled' ? 'cancelled' : 'waitlist')}">${booking.status}</span>
+                        </div>
+                        
+                        <div style="font-size:14px; margin-bottom:8px;">
+                            <strong>${booking.trainName} (${booking.trainNumber})</strong><br>
+                            ${booking.from} → ${booking.to}
+                        </div>
+                        <div style="font-size:13px; color:var(--ink-muted);">
+                            Date of Journey: <strong>${booking.formattedDate || booking.journeyDate}</strong><br>
+                            Class: <strong>${booking.classCode}</strong> | Charting Status: <strong>CHART NOT PREPARED</strong>
+                        </div>
+                    </div>
+
+                    <h4 style="font-size:12px; text-transform:uppercase; margin-bottom:8px;">Passenger Berth Allocation</h4>
+                    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                        <thead>
+                            <tr style="background:var(--paper); border-bottom:1px solid var(--line-strong); text-align:left;">
+                                <th style="padding:6px;">#</th>
+                                <th style="padding:6px;">Passenger</th>
+                                <th style="padding:6px;">Booking Status</th>
+                                <th style="padding:6px;">Current Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${booking.passengers.map((p, idx) => `
+                                <tr style="border-bottom:1px solid var(--line);">
+                                    <td style="padding:6px;">${idx+1}</td>
+                                    <td style="padding:6px; font-weight:600;">${p.name}</td>
+                                    <td style="padding:6px;">${p.status || 'CNF'}</td>
+                                    <td style="padding:6px; font-weight:bold; color:var(--accent-sage);">${p.berth || (booking.coach ? booking.coach + '-' + (20+idx) : 'WL')}</td>
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            IRCTC.openModal("pnr-status-modal");
+        }
+
+        function promptCancelTicket(pnr) {
+            const booking = IRCTC.getBookingByPnr(pnr);
+            if (!booking) return;
+
+            targetCancelPnr = pnr;
+            const clerkage = 120 * booking.passengers.length;
+            const refund = Math.max(0, booking.totalFare - clerkage);
+
+            document.getElementById("cancel-pnr-text").textContent = booking.pnr;
+            document.getElementById("cancel-train-text").textContent = `${booking.trainName} (${booking.trainNumber})`;
+            document.getElementById("cancel-route-text").textContent = `${booking.from} → ${booking.to} | ${booking.formattedDate || booking.journeyDate}`;
+            document.getElementById("cancel-fare-paid").textContent = `₹ ${parseFloat(booking.totalFare).toFixed(2)}`;
+            document.getElementById("cancel-clerkage-fee").textContent = `- ₹ ${clerkage.toFixed(2)}`;
+            document.getElementById("cancel-refund-amt").textContent = `₹ ${refund.toFixed(2)}`;
+
+            IRCTC.openModal("cancel-modal");
+        }
+
+        function executeCancellation() {
+            if (!targetCancelPnr) return;
+
+            const res = IRCTC.cancelBooking(targetCancelPnr);
+            IRCTC.closeModal("cancel-modal");
+
+            if (res) {
+                IRCTC.showToast(`Ticket PNR ${targetCancelPnr} cancelled! ₹${res.refundAmt.toFixed(2)} refunded to E-Wallet.`, "success");
+                renderBookings();
+            } else {
+                IRCTC.showToast("Cancellation failed", "error");
+            }
+        }
+
+        // Initialize bookings view
+        renderBookings();
+    </script>
+</body>
+</html>

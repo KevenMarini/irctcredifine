@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRCTC - Authentication & Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+    <style>
+        /* Login Specific */
+        .content-area { flex-grow: 1; position: relative; display: flex; align-items: center; justify-content: center; }
+        .bg-image { 
+            position: absolute; 
+            inset: 0; 
+            background-image: url('https://commons.wikimedia.org/wiki/Special:FilePath/Chhatrapati_Shivaji_Terminus,_Mumbai,_India.jpg'); 
+            background-size: cover; 
+            background-position: center;
+            background-blend-mode: overlay; 
+            background-color: rgba(244, 247, 246, 0.88); 
+            z-index: 0; 
+        }
+        
+        .login-card { 
+            position: relative; 
+            z-index: 1; 
+            background: var(--surface); 
+            width: 460px; 
+            padding: 44px; 
+            border: 2px solid var(--ink); 
+            box-shadow: 14px 14px 0 rgba(30, 41, 59, 0.15); 
+        }
+        
+        h1 { font-family: var(--font-script); font-size: 42px; font-weight: normal; margin-bottom: 6px; text-align: center; line-height: 1; }
+        .subtitle { text-align: center; color: var(--ink-muted); margin-bottom: 28px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+        
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-size: 11px; color: var(--ink-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+        input[type="text"], input[type="password"], input[type="email"], input[type="tel"] { width: 100%; height: 44px; border: 1px solid var(--line-strong); background: var(--paper); padding: 0 14px; font-family: var(--font-grotesque); font-size: 14px; color: var(--ink); outline: none; border-radius: 0; }
+        input:focus { border-color: var(--accent-blush); background: var(--surface); }
+        
+        .btn-submit { height: 48px; width: 100%; background: var(--accent-blush); color: var(--surface); border: none; border-radius: 6px; font-family: var(--font-grotesque); font-weight: 700; font-size: 14px; letter-spacing: 0.05em; cursor: pointer; text-transform: uppercase; margin-top: 14px; box-shadow: 0 4px 0 #C2410C; transform: translateY(0); transition: transform 0.1s, box-shadow 0.1s, background-color 0.15s; }
+        .btn-submit:hover { transform: translateY(2px); box-shadow: 0 2px 0 #C2410C; background-color: var(--accent-blush-hover); }
+        .btn-submit:active { transform: translateY(4px); box-shadow: 0 0 0 #C2410C; }
+        
+        .links { margin-top: 24px; text-align: center; font-size: 13px; font-weight: 600; }
+        .links a { color: var(--ink); text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em; }
+        .links a:hover { color: var(--accent-blush); text-decoration: underline; }
+
+        .demo-creds {
+            margin-top: 20px;
+            padding: 12px;
+            background: var(--paper);
+            border: 1px dashed var(--line-strong);
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            IRCTC <span class="badge-ir">AUTH</span>
+        </a>
+        <ul class="nav-menu">
+            <li><a href="index.html" class="nav-item">Book Ticket</a></li>
+            <li><a href="trains.html" class="nav-item">Search Trains</a></li>
+            <li><a href="profile.html" class="nav-item">PNR Enquiry</a></li>
+            <li><a href="places.html" class="nav-item">Tourism</a></li>
+            <li class="nav-section"><div class="nav-label">Navigation</div></li>
+            <li><a href="index.html" class="nav-item">Back to Dashboard</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-wrapper">
+        <header class="topbar">
+            <button class="btn-back" onclick="history.back()">← Back</button>
+            <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-left: auto;">
+                Secure Authentication Gateway (256-bit SSL)
+            </div>
+        </header>
+
+        <div class="content-area">
+            <div class="bg-image"></div>
+            
+            <div class="login-card">
+                <h1>IRCTC Sign In</h1>
+                <p class="subtitle">Secure Booking Gateway</p>
+                
+                <form id="login-form" onsubmit="handleLoginSubmit(event)">
+                    <div class="form-group">
+                        <label for="login-userid">User ID / IRCTC Username</label>
+                        <input type="text" id="login-userid" value="rajesh_k" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" value="••••••••••••" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-submit">Sign In to Account</button>
+                </form>
+                
+                <div class="demo-creds">
+                    <span>Demo Account Pre-filled: <strong>rajesh_k</strong></span> &bull; 
+                    <a href="javascript:void(0)" onclick="fillDemo()" style="color:var(--accent-blush); font-weight:bold;">Click to Autofill</a>
+                </div>
+
+                <div class="links">
+                    <a href="javascript:void(0)" onclick="openRegisterModal()">Register New User</a> &nbsp;|&nbsp; 
+                    <a href="javascript:void(0)" onclick="openForgotModal()">Forgot Password</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title">Create IRCTC Account</div>
+                <button class="modal-close" onclick="IRCTC.closeModal('register-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="reg-form" onsubmit="handleRegisterSubmit(event)">
+                    <div class="form-group">
+                        <label>Preferred Username / User ID</label>
+                        <input type="text" id="reg-userid" placeholder="e.g. priya_sharma" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name (as per Govt ID)</label>
+                        <input type="text" id="reg-name" placeholder="Full Legal Name" required>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;" class="form-group">
+                        <div>
+                            <label>Mobile Number</label>
+                            <input type="tel" id="reg-phone" placeholder="+91 98765 00000" required>
+                        </div>
+                        <div>
+                            <label>Email Address</label>
+                            <input type="email" id="reg-email" placeholder="user@gmail.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Create Password</label>
+                        <input type="password" id="reg-pass" placeholder="At least 6 characters" required>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Create Free Account</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="IRCTC.closeModal('register-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgot-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title">Password Recovery</div>
+                <button class="modal-close" onclick="IRCTC.closeModal('forgot-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: var(--ink-muted); margin-bottom: 16px;">
+                    Enter your registered User ID or Email to receive an instant verification reset token.
+                </p>
+                <div class="form-group">
+                    <label>Registered User ID / Email</label>
+                    <input type="text" id="forgot-input" placeholder="User ID or Email address" value="rajesh_k">
+                </div>
+                <button type="button" class="btn-primary" style="width: 100%;" onclick="sendResetOtp()">Send Reset OTP to Phone</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="IRCTC.closeModal('forgot-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+        function fillDemo() {
+            document.getElementById("login-userid").value = "rajesh_k";
+            document.getElementById("login-password").value = "pass123";
+            IRCTC.showToast("Demo credentials pre-filled", "info");
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const uid = document.getElementById("login-userid").value.trim();
+            const pass = document.getElementById("login-password").value.trim();
+
+            if (!uid || !pass) {
+                IRCTC.showToast("Please enter both User ID and Password", "error");
+                return;
+            }
+
+            IRCTC.login(uid, pass);
+        }
+
+        function openRegisterModal() {
+            IRCTC.openModal("register-modal");
+        }
+
+        function openForgotModal() {
+            IRCTC.openModal("forgot-modal");
+        }
+
+        function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const uid = document.getElementById("reg-userid").value.trim();
+            const name = document.getElementById("reg-name").value.trim();
+            const phone = document.getElementById("reg-phone").value.trim();
+            const email = document.getElementById("reg-email").value.trim();
+
+            if (!uid || !name) {
+                IRCTC.showToast("Please fill all required fields", "error");
+                return;
+            }
+
+            const newUser = {
+                name: name.toUpperCase(),
+                email: email || "user@gmail.com",
+                userId: uid,
+                phone: phone || "+91 98765 00000",
+                isLoggedIn: true
+            };
+
+            IRCTC.setUser(newUser);
+            IRCTC.closeModal("register-modal");
+            IRCTC.showToast(`Account created for ${newUser.name}! Redirecting...`, "success");
+
+            setTimeout(() => {
+                window.location.href = "profile.html";
+            }, 600);
+        }
+
+        function sendResetOtp() {
+            const input = document.getElementById("forgot-input").value.trim();
+            if (!input) {
+                IRCTC.showToast("Please enter your User ID or Email", "error");
+                return;
+            }
+            IRCTC.closeModal("forgot-modal");
+            IRCTC.showToast(`Verification code sent to mobile linked with ${input}. Password reset simulated!`, "success");
+        }
+    </script>
+</body>
+</html>

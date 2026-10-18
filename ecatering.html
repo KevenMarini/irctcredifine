@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRCTC - E-Catering Food on Track</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+    <style>
+        .content-area { flex-grow: 1; overflow-y: auto; padding: 40px 48px; background: var(--paper); }
+        h1 { font-family: var(--font-script); font-size: 48px; font-weight: normal; margin-bottom: 24px; line-height: 1; }
+        h2 { font-size: 15px; font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between; align-items: center; }
+
+        .pnr-box { background: var(--surface); border: 2px solid var(--ink); padding: 20px 24px; margin-bottom: 28px; box-shadow: 6px 6px 0 rgba(0,0,0,0.06); display: flex; gap: 16px; align-items: flex-end; }
+        .pnr-box input, .pnr-box select { height: 44px; border: 1px solid var(--line-strong); background: var(--paper); padding: 0 14px; font-family: var(--font-grotesque); font-size: 14px; outline: none; }
+        
+        .food-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .food-card { background: var(--surface); border: 1px solid var(--line-strong); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 4px 4px 0 rgba(0,0,0,0.04); transition: transform 0.15s; }
+        .food-card:hover { transform: translateY(-2px); border-color: var(--ink); }
+        .food-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 2px; align-self: flex-start; margin-bottom: 10px; }
+        .food-badge.veg { background: #ECFDF5; color: var(--accent-sage); border: 1px solid var(--accent-sage); }
+        .food-badge.nonveg { background: #FEF2F2; color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .food-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+        .food-desc { font-size: 13px; color: var(--ink-muted); margin-bottom: 16px; line-height: 1.5; }
+        .food-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 12px; }
+        .food-price { font-family: var(--font-script); font-size: 24px; font-weight: 700; color: var(--ink); }
+
+        /* Floating Cart Bar */
+        .cart-bar { position: fixed; bottom: 24px; left: 300px; right: 48px; background: var(--ink); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); z-index: 50; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            IRCTC <span class="badge-ir">FOOD</span>
+        </a>
+        <ul class="nav-menu">
+            <li><a href="index.html" class="nav-item">Book Ticket</a></li>
+            <li><a href="trains.html" class="nav-item">Search Trains</a></li>
+            <li><a href="profile.html" class="nav-item">PNR Enquiry</a></li>
+            <li><a href="charts.html" class="nav-item">Charts / Vacancy</a></li>
+            
+            <li class="nav-section"><div class="nav-label">Services</div></li>
+            <li><a href="ecatering.html" class="nav-item active">E-Catering</a></li>
+            <li><a href="rooms.html" class="nav-item">Retiring Rooms</a></li>
+            <li><a href="places.html" class="nav-item">Tourism</a></li>
+            
+            <li class="nav-section"><div class="nav-label">Account</div></li>
+            <li><a href="profile.html" class="nav-item">My Bookings</a></li>
+            <li><a href="master_list.html" class="nav-item">Master List</a></li>
+            <li><a href="loyalty.html" class="nav-item">Loyalty</a></li>
+            <li><a href="wallet.html" class="nav-item">E-Wallet</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-wrapper">
+        <header class="topbar">
+            <button class="btn-back" onclick="history.back()">← Back</button>
+            <div class="top-links">
+                <span id="live-clock">18-Oct-2026 [14:49:04]</span>
+                <span style="color: var(--line-strong);">|</span>
+                <div id="header-user-slot"></div>
+            </div>
+        </header>
+
+        <div class="content-area">
+            <h1>IRCTC E-Catering &bull; Food on Track</h1>
+            
+            <div class="pnr-box">
+                <div style="flex-grow: 1;">
+                    <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--ink-muted); margin-bottom:6px;">Select Journey PNR</label>
+                    <select id="catering-pnr-select" style="width:100%;" onchange="onPnrChange()">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div style="width: 220px;">
+                    <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--ink-muted); margin-bottom:6px;">Delivery Station</label>
+                    <select id="catering-station-select" style="width:100%;">
+                        <option>Kota Junction (KOTA) - 20:45</option>
+                        <option>Vadodara (BRC) - 03:15</option>
+                        <option>Surat (ST) - 05:25</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="IRCTC.showToast('Updated delivery timetable for journey', 'info')">Verify Station</button>
+            </div>
+
+            <h2>Available Station Restaurant Meals</h2>
+            
+            <div class="food-grid">
+                <!-- Meal 1 -->
+                <div class="food-card">
+                    <div>
+                        <span class="food-badge veg">Pure Veg</span>
+                        <div class="food-title">Haldiram's Deluxe Thali</div>
+                        <div class="food-desc">Paneer Butter Masala, Dal Makhani, 2 Laccha Parathas, Jeera Rice, Curd & Hot Gulab Jamun.</div>
+                    </div>
+                    <div class="food-footer">
+                        <span class="food-price">₹ 260</span>
+                        <button class="btn-secondary" style="font-size:11px;" onclick="addToCart('Haldiram Deluxe Thali', 260)">+ Add to Cart</button>
+                    </div>
+                </div>
+
+                <!-- Meal 2 -->
+                <div class="food-card">
+                    <div>
+                        <span class="food-badge veg">Pure Veg</span>
+                        <div class="food-title">Domino's Classic Farmhouse Pizza</div>
+                        <div class="food-desc">Fresh onion, crisp capsicum, grilled mushroom & juicy tomato with cheese burst crust.</div>
+                    </div>
+                    <div class="food-footer">
+                        <span class="food-price">₹ 299</span>
+                        <button class="btn-secondary" style="font-size:11px;" onclick="addToCart('Domino\'s Farmhouse Pizza', 299)">+ Add to Cart</button>
+                    </div>
+                </div>
+
+                <!-- Meal 3 -->
+                <div class="food-card">
+                    <div>
+                        <span class="food-badge veg">Pure Veg</span>
+                        <div class="food-title">Sagar Ratna South Indian Combo</div>
+                        <div class="food-desc">Crispy Masala Dosa, 2 Steamed Idlis, Medu Vada, authentic coconut chutney & steaming Sambhar.</div>
+                    </div>
+                    <div class="food-footer">
+                        <span class="food-price">₹ 190</span>
+                        <button class="btn-secondary" style="font-size:11px;" onclick="addToCart('Sagar Ratna South Combo', 190)">+ Add to Cart</button>
+                    </div>
+                </div>
+
+                <!-- Meal 4 -->
+                <div class="food-card">
+                    <div>
+                        <span class="food-badge nonveg">Non-Veg</span>
+                        <div class="food-title">Behrouz Royal Murgh Biryani</div>
+                        <div class="food-desc">Tender chicken pieces dum-cooked in aromatic basmati rice with royal spices and rich raita.</div>
+                    </div>
+                    <div class="food-footer">
+                        <span class="food-price">₹ 349</span>
+                        <button class="btn-secondary" style="font-size:11px;" onclick="addToCart('Behrouz Murgh Biryani', 349)">+ Add to Cart</button>
+                    </div>
+                </div>
+
+                <!-- Meal 5 -->
+                <div class="food-card">
+                    <div>
+                        <span class="food-badge veg">Jain / Sattvic</span>
+                        <div class="food-title">IRCTC Sattvic Jain Thali</div>
+                        <div class="food-desc">Prepared without onion and garlic. Shahi Paneer, Yellow Dal Tadka, 3 Phulkas, Rice, Kheer.</div>
+                    </div>
+                    <div class="food-footer">
+                        <span class="food-price">₹ 210</span>
+                        <button class="btn-secondary" style="font-size:11px;" onclick="addToCart('Jain Sattvic Thali', 210)">+ Add to Cart</button>
+                    </div>
+                </div>
+
+                <!-- Meal 6 -->
+                <div class="food-card">
+                    <div>
+                        <span class="food-badge veg">Dessert</span>
+                        <div class="food-title">Chhappan Bhog Kaju Katli Box</div>
+                        <div class="food-desc">Premium silver-foiled cashew sweets box (250g). Perfect travel dessert gift pack.</div>
+                    </div>
+                    <div class="food-footer">
+                        <span class="food-price">₹ 280</span>
+                        <button class="btn-secondary" style="font-size:11px;" onclick="addToCart('Chhappan Bhog Kaju Katli', 280)">+ Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cart Bar -->
+            <div class="cart-bar" id="catering-cart-bar" style="display: none;">
+                <div>
+                    <strong id="cart-items-text">0 Items Selected</strong>
+                    <div style="font-size:12px; color:#cbd5e1;">Delivery to Seat on PNR <span id="cart-pnr-text">8472910472</span></div>
+                </div>
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <div style="font-family: var(--font-script); font-size: 26px;" id="cart-total-text">₹ 0.00</div>
+                    <button class="btn-primary" onclick="checkoutFoodOrder()">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="shared.js"></script>
+    <script>
+        let cart = [];
+
+        function loadPnrs() {
+            const bookings = IRCTC.getBookings().filter(b => b.status === "Confirmed");
+            const select = document.getElementById("catering-pnr-select");
+            if (bookings.length === 0) {
+                select.innerHTML = `<option value="8472910472">PNR: 8472910472 - Rajdhani Express</option>`;
+            } else {
+                select.innerHTML = bookings.map(b => `
+                    <option value="${b.pnr}">PNR: ${b.pnr} - ${b.trainName} (${b.coach || 'B2'})</option>
+                `).join("");
+            }
+            onPnrChange();
+        }
+
+        function onPnrChange() {
+            const pnr = document.getElementById("catering-pnr-select").value;
+            document.getElementById("cart-pnr-text").textContent = pnr;
+        }
+
+        function addToCart(title, price) {
+            cart.push({ title, price });
+            updateCart();
+            IRCTC.showToast(`Added ${title} to meal cart`, "success");
+        }
+
+        function updateCart() {
+            const bar = document.getElementById("catering-cart-bar");
+            if (cart.length === 0) {
+                bar.style.display = "none";
+                return;
+            }
+            bar.style.display = "flex";
+            const total = cart.reduce((acc, curr) => acc + curr.price, 0);
+            document.getElementById("cart-items-text").textContent = `${cart.length} Meal${cart.length > 1 ? 's' : ''} in Cart`;
+            document.getElementById("cart-total-text").textContent = `₹ ${total.toFixed(2)}`;
+        }
+
+        function checkoutFoodOrder() {
+            const total = cart.reduce((acc, curr) => acc + curr.price, 0);
+            const pnr = document.getElementById("catering-pnr-select").value;
+            const station = document.getElementById("catering-station-select").value;
+
+            if (confirm(`Confirm order of ${cart.length} meals for ₹${total.toFixed(2)} delivered at ${station}?`)) {
+                IRCTC.creditLoyaltyPoints(`E-Catering Order (PNR: ${pnr})`, 50);
+                IRCTC.showToast(`Order placed! Food will be delivered right to your train seat.`, "success");
+                cart = [];
+                updateCart();
+            }
+        }
+
+        // Initialize
+        loadPnrs();
+    </script>
+</body>
+</html>

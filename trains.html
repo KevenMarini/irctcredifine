@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRCTC - Search Trains</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+    <style>
+        /* Content Area */
+        .content-area { flex-grow: 1; overflow-y: auto; display: flex; }
+        
+        .filters { 
+            width: 340px; 
+            padding: 32px; 
+            border-right: 1px solid var(--line-strong); 
+            background: var(--surface); 
+            overflow-y: auto; 
+            flex-shrink: 0;
+        }
+        .results { 
+            flex: 1; 
+            padding: 32px; 
+            background: var(--paper); 
+            overflow-y: auto; 
+        }
+        
+        /* Typography */
+        h1 { font-family: var(--font-script); font-size: 40px; font-weight: normal; margin-bottom: 24px; line-height: 1; color: var(--ink); }
+        h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid var(--ink); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Forms */
+        .form-group { margin-bottom: 20px; position: relative; }
+        label { display: block; font-size: 11px; color: var(--ink-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        input[type="text"], input[type="date"], select { width: 100%; height: 44px; border: 1px solid var(--line-strong); background: var(--paper); padding: 0 14px; font-family: var(--font-grotesque); font-size: 14px; color: var(--ink); border-radius: 0; outline: none; }
+        input:focus, select:focus { border-color: var(--accent-blush); background: var(--surface); }
+        
+        .btn-filter { height: 48px; width: 100%; background: var(--ink); color: var(--surface); border: none; border-radius: 6px; font-family: var(--font-grotesque); font-weight: 600; font-size: 14px; letter-spacing: 0.05em; cursor: pointer; text-transform: uppercase; margin-top: 16px; box-shadow: 0 4px 0 #0F172A; transform: translateY(0); transition: transform 0.1s, box-shadow 0.1s; }
+        .btn-filter:hover { transform: translateY(2px); box-shadow: 0 2px 0 #0F172A; }
+        .btn-filter:active { transform: translateY(4px); box-shadow: 0 0 0 #0F172A; }
+        
+        /* Train Card */
+        .train-card { background: var(--surface); border: 1px solid var(--line-strong); margin-bottom: 20px; padding: 24px; box-shadow: 6px 6px 0 rgba(51, 48, 59, 0.04); transition: transform 0.15s, box-shadow 0.15s; }
+        .train-card:hover { border-color: var(--ink); box-shadow: 8px 8px 0 rgba(51, 48, 59, 0.08); }
+        .train-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--line); padding-bottom: 16px; margin-bottom: 16px; }
+        .train-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: var(--ink); }
+        .train-route { font-size: 13px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+        .train-schedule { text-align: right; }
+        .train-time { font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 700; font-family: var(--font-script); color: var(--ink); }
+        .train-duration { font-size: 12px; color: var(--ink-muted); font-weight: 600; }
+        
+        .class-grid { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
+        .class-box { border: 2px solid var(--line-strong); padding: 12px 16px; min-width: 150px; cursor: pointer; transition: all 0.15s; background: var(--surface); border-radius: 4px; }
+        .class-box:hover { border-color: var(--accent-blush); transform: translateY(-2px); }
+        .class-box.selected { border-color: var(--accent-blush); background: #FFF7ED; box-shadow: 0 2px 6px rgba(249, 115, 22, 0.2); }
+        .class-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .class-fare { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+        .class-status { font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
+        .status-avail { color: var(--accent-sage); }
+        .status-wl { color: var(--accent-sand); }
+        .status-rac { color: var(--accent-sky); }
+        
+        .book-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 16px; }
+        .schedule-btn { background: none; border: none; color: var(--accent-sky); font-size: 12px; font-weight: 600; text-transform: uppercase; cursor: pointer; text-decoration: underline; }
+        .schedule-btn:hover { color: var(--accent-blush); }
+
+        .book-btn { background: var(--accent-blush); color: var(--surface); border: none; border-radius: 6px; height: 44px; padding: 0 32px; font-size: 13px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 4px 0 #C2410C; transform: translateY(0); transition: transform 0.1s, box-shadow 0.1s, background-color 0.15s; }
+        .book-btn:hover { transform: translateY(2px); box-shadow: 0 2px 0 #C2410C; background-color: var(--accent-blush-hover); }
+        .book-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #C2410C; }
+
+        /* Route Timeline Drawer */
+        .route-drawer { display: none; background: var(--paper); border: 1px dashed var(--line-strong); padding: 16px; margin-top: 16px; font-size: 12px; border-radius: 4px; }
+        .route-drawer.open { display: block; }
+        .route-stops { display: flex; justify-content: space-between; position: relative; margin-top: 12px; }
+        .route-stops::before { content: ""; position: absolute; top: 8px; left: 10px; right: 10px; height: 2px; background: var(--line-strong); z-index: 0; }
+        .stop-point { position: relative; z-index: 1; text-align: center; }
+        .stop-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 3px solid var(--accent-blush); margin: 0 auto 6px auto; }
+        .stop-name { font-weight: 700; color: var(--ink); }
+        .stop-time { color: var(--ink-muted); font-size: 11px; }
+
+        .no-trains-box {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--surface);
+            border: 2px dashed var(--line-strong);
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            IRCTC <span class="badge-ir">OFFICIAL</span>
+        </a>
+        <ul class="nav-menu">
+            <li><a href="index.html" class="nav-item">Book Ticket</a></li>
+            <li><a href="trains.html" class="nav-item active">Search Trains</a></li>
+            <li><a href="profile.html" class="nav-item">PNR Enquiry</a></li>
+            <li><a href="charts.html" class="nav-item">Charts / Vacancy</a></li>
+            
+            <li class="nav-section"><div class="nav-label">Services</div></li>
+            <li><a href="ecatering.html" class="nav-item">E-Catering</a></li>
+            <li><a href="rooms.html" class="nav-item">Retiring Rooms</a></li>
+            <li><a href="places.html" class="nav-item">Tourism</a></li>
+            
+            <li class="nav-section"><div class="nav-label">Account</div></li>
+            <li><a href="profile.html" class="nav-item">My Bookings</a></li>
+            <li><a href="master_list.html" class="nav-item">Master List</a></li>
+            <li><a href="loyalty.html" class="nav-item">Loyalty</a></li>
+            <li><a href="wallet.html" class="nav-item">E-Wallet</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-wrapper">
+        <header class="topbar">
+            <button class="btn-back" onclick="history.back()">← Back</button>
+            <div class="top-links">
+                <span id="live-clock">18-Oct-2026 [14:49:04]</span>
+                <span style="color: var(--line-strong);">|</span>
+                <div class="font-size-ctrl">
+                    <button onclick="IRCTC.setFontSize('13px')">A-</button>
+                    <button onclick="IRCTC.setFontSize('14px')" class="active">A</button>
+                    <button onclick="IRCTC.setFontSize('16px')">A+</button>
+                </div>
+                <span style="color: var(--line-strong);">|</span>
+                <div id="header-user-slot"></div>
+            </div>
+        </header>
+
+        <div class="content-area">
+            <!-- Functional Filters Panel -->
+            <div class="filters">
+                <h1>Filter Trains</h1>
+                
+                <div class="form-group">
+                    <label for="filter-from">From Station</label>
+                    <input type="text" id="filter-from" data-station-search="true" value="New Delhi (NDLS)" autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label for="filter-to">To Station</label>
+                    <input type="text" id="filter-to" data-station-search="true" value="Mumbai Central (BCT)" autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label for="filter-date">Date of Journey</label>
+                    <input type="date" id="filter-date">
+                </div>
+                
+                <div class="form-group">
+                    <label for="filter-class">Preferred Class</label>
+                    <select id="filter-class">
+                        <option value="ALL">All Classes</option>
+                        <option value="1A">AC First Class (1A)</option>
+                        <option value="2A">AC 2 Tier (2A)</option>
+                        <option value="3A">AC 3 Tier (3A)</option>
+                        <option value="EC">Exec. Chair Car (EC)</option>
+                        <option value="CC">AC Chair Car (CC)</option>
+                        <option value="SL">Sleeper (SL)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="filter-quota">Booking Quota</label>
+                    <select id="filter-quota">
+                        <option value="GENERAL">General</option>
+                        <option value="TATKAL">Tatkal</option>
+                        <option value="LADIES">Ladies</option>
+                        <option value="SENIOR CITIZEN">Senior Citizen</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-top: 10px;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" id="filter-available-only" style="width:16px; height:16px;">
+                        <span>Show Available Berths Only</span>
+                    </label>
+                </div>
+                
+                <button class="btn-filter" onclick="applyFilters()">Modify Search</button>
+            </div>
+            
+            <!-- Dynamic Results Panel -->
+            <div class="results">
+                <h2>
+                    <span id="results-count-text">Loading trains...</span>
+                    <span id="route-badge-text" style="font-size: 12px; font-weight: normal; color: var(--ink-muted);"></span>
+                </h2>
+                
+                <div id="trains-list-container">
+                    <!-- Populated dynamically via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="shared.js"></script>
+    <script>
+        // Extract URL or Session parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const savedSession = JSON.parse(sessionStorage.getItem("irctc_active_search") || "{}");
+
+        const fromQuery = urlParams.get("from") || savedSession.from || "New Delhi (NDLS)";
+        const toQuery = urlParams.get("to") || savedSession.to || "Mumbai Central (BCT)";
+        const dateQuery = urlParams.get("date") || savedSession.date || "";
+        const classQuery = urlParams.get("class") || savedSession.trainClass || "ALL";
+        const quotaQuery = urlParams.get("quota") || savedSession.quota || "GENERAL";
+        const availQuery = urlParams.get("availableOnly") === "true" || savedSession.availableOnly || false;
+
+        document.getElementById("filter-from").value = fromQuery;
+        document.getElementById("filter-to").value = toQuery;
+        document.getElementById("filter-class").value = classQuery;
+        document.getElementById("filter-quota").value = quotaQuery;
+        document.getElementById("filter-available-only").checked = availQuery;
+
+        if (dateQuery) {
+            document.getElementById("filter-date").value = dateQuery;
+        } else {
+            const tmrw = new Date();
+            tmrw.setDate(tmrw.getDate() + 1);
+            document.getElementById("filter-date").value = tmrw.toISOString().split("T")[0];
+        }
+
+        // Store selected classes for each train
+        const trainSelectedClass = {};
+
+        function getStationCode(str) {
+            const m = str.match(/\(([A-Z]+)\)/);
+            return m ? m[1] : str.trim().toUpperCase();
+        }
+
+        function renderTrains() {
+            const fromText = document.getElementById("filter-from").value;
+            const toText = document.getElementById("filter-to").value;
+            const selectedClass = document.getElementById("filter-class").value;
+            const quota = document.getElementById("filter-quota").value;
+            const journeyDate = document.getElementById("filter-date").value;
+            const availOnly = document.getElementById("filter-available-only").checked;
+
+            const fromCode = getStationCode(fromText);
+            const toCode = getStationCode(toText);
+
+            document.getElementById("route-badge-text").textContent = `${fromText} → ${toText} | ${journeyDate} (${quota})`;
+
+            // Match trains from database
+            let matched = IRCTC.TRAINS.filter(t => {
+                // If direct match by station code or name
+                const matchOrigin = (t.fromCode === fromCode || fromText.toLowerCase().includes(t.fromName.toLowerCase()));
+                const matchDest = (t.toCode === toCode || toText.toLowerCase().includes(t.toName.toLowerCase()));
+                return matchOrigin && matchDest;
+            });
+
+            // If no exact matched route, offer realistic superfast alternatives
+            if (matched.length === 0) {
+                matched = IRCTC.TRAINS.slice(0, 3);
+            }
+
+            // Filter by available classes or berth availability if requested
+            if (selectedClass !== "ALL") {
+                matched = matched.filter(t => t.classes && t.classes[selectedClass]);
+            }
+
+            if (availOnly) {
+                matched = matched.filter(t => {
+                    return Object.values(t.classes).some(c => c.avail);
+                });
+            }
+
+            const container = document.getElementById("trains-list-container");
+            document.getElementById("results-count-text").textContent = `${matched.length} Trains Found`;
+
+            if (matched.length === 0) {
+                container.innerHTML = `
+                    <div class="no-trains-box">
+                        <div style="font-family: var(--font-script); font-size: 32px; color: var(--ink-muted); margin-bottom: 8px;">No Direct Trains Available</div>
+                        <p style="font-size: 14px; color: var(--ink-muted); max-width: 480px; margin: 0 auto 20px auto;">
+                            We couldn't find any direct trains matching the selected criteria for this date. Try changing classes or selecting all quotas.
+                        </p>
+                        <button class="btn-primary" onclick="resetFilters()">Reset Search Filters</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = matched.map(train => {
+                const classes = train.classes || {};
+                const classKeys = Object.keys(classes);
+                
+                // Pick default class (2A or 3A or first available)
+                if (!trainSelectedClass[train.number]) {
+                    trainSelectedClass[train.number] = classKeys.includes("2A") ? "2A" : classKeys[0];
+                }
+                const activeClass = trainSelectedClass[train.number];
+
+                return `
+                    <div class="train-card" id="card-${train.number}">
+                        <div class="train-header">
+                            <div>
+                                <div class="train-name">${train.name} (${train.number})</div>
+                                <div class="train-route">${train.fromName} (${train.fromCode}) [${train.depTime}] → ${train.toName} (${train.toCode}) [${train.arrTime}]</div>
+                            </div>
+                            <div class="train-schedule">
+                                <div class="train-time">${train.duration}</div>
+                                <div class="train-duration">Runs: ${train.runsDays}</div>
+                            </div>
+                        </div>
+
+                        <div class="class-grid">
+                            ${classKeys.map(cKey => {
+                                const cInfo = classes[cKey];
+                                const isSelected = (cKey === activeClass);
+                                const isAvail = cInfo.avail;
+                                return `
+                                    <div class="class-box ${isSelected ? 'selected' : ''}" onclick="selectTrainClass('${train.number}', '${cKey}')">
+                                        <div class="class-title">
+                                            <span>${cKey}</span>
+                                            <span style="font-size: 11px; color: var(--ink-muted); font-weight: normal;">${cInfo.name}</span>
+                                        </div>
+                                        <div class="class-fare">₹ ${cInfo.fare.toLocaleString()}</div>
+                                        <div class="class-status ${isAvail ? 'status-avail' : 'status-wl'}">
+                                            ${cInfo.status}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join("")}
+                        </div>
+
+                        <div class="book-actions">
+                            <button class="schedule-btn" onclick="toggleRouteDrawer('${train.number}')">
+                                📍 View Route & Stoppages
+                            </button>
+                            <button class="book-btn" onclick="proceedToBooking('${train.number}')">
+                                Book Now (${activeClass})
+                            </button>
+                        </div>
+
+                        <!-- Expandable Stoppages Timeline -->
+                        <div class="route-drawer" id="drawer-${train.number}">
+                            <strong>Intermediate Timetable & Stoppages:</strong>
+                            <div class="route-stops">
+                                <div class="stop-point">
+                                    <div class="stop-dot"></div>
+                                    <div class="stop-name">${train.fromCode}</div>
+                                    <div class="stop-time">${train.depTime}</div>
+                                </div>
+                                <div class="stop-point">
+                                    <div class="stop-dot"></div>
+                                    <div class="stop-name">KOTA</div>
+                                    <div class="stop-time">+4h 15m</div>
+                                </div>
+                                <div class="stop-point">
+                                    <div class="stop-dot"></div>
+                                    <div class="stop-name">BRC</div>
+                                    <div class="stop-time">+10h 40m</div>
+                                </div>
+                                <div class="stop-point">
+                                    <div class="stop-dot"></div>
+                                    <div class="stop-name">ST</div>
+                                    <div class="stop-time">+12h 50m</div>
+                                </div>
+                                <div class="stop-point">
+                                    <div class="stop-dot"></div>
+                                    <div class="stop-name">${train.toCode}</div>
+                                    <div class="stop-time">${train.arrTime}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function selectTrainClass(trainNumber, classCode) {
+            trainSelectedClass[trainNumber] = classCode;
+            renderTrains();
+        }
+
+        function toggleRouteDrawer(trainNumber) {
+            const drawer = document.getElementById(`drawer-${trainNumber}`);
+            if (drawer) {
+                drawer.classList.toggle("open");
+            }
+        }
+
+        function applyFilters() {
+            IRCTC.showToast("Updating train schedule & availability...", "info");
+            renderTrains();
+        }
+
+        function resetFilters() {
+            document.getElementById("filter-class").value = "ALL";
+            document.getElementById("filter-available-only").checked = false;
+            renderTrains();
+        }
+
+        function proceedToBooking(trainNumber) {
+            const train = IRCTC.TRAINS.find(t => t.number === trainNumber);
+            if (!train) return;
+
+            const chosenClass = trainSelectedClass[trainNumber] || "2A";
+            const classInfo = train.classes[chosenClass] || { fare: 2850, name: "AC 2 Tier" };
+            const journeyDate = document.getElementById("filter-date").value;
+            const quota = document.getElementById("filter-quota").value;
+
+            const bookingContext = {
+                trainNumber: train.number,
+                trainName: train.name,
+                from: `${train.fromName} (${train.fromCode})`,
+                fromCode: train.fromCode,
+                to: `${train.toName} (${train.toCode})`,
+                toCode: train.toCode,
+                depTime: train.depTime,
+                arrTime: train.arrTime,
+                duration: train.duration,
+                journeyDate: journeyDate,
+                classCode: chosenClass,
+                className: classInfo.name,
+                farePerAdult: classInfo.fare,
+                quota: quota,
+                status: classInfo.avail ? "Confirmed" : "Waitlisted"
+            };
+
+            sessionStorage.setItem("irctc_pending_booking", JSON.stringify(bookingContext));
+            window.location.href = "booking.html";
+        }
+
+        // Initial render
+        renderTrains();
+    </script>
+</body>
+</html>

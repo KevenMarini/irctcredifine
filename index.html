@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRCTC - Indian Railway Catering and Tourism Corporation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+    <style>
+        /* Content Area */
+        .content-area { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            position: relative; 
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bg-image { 
+            position: absolute; 
+            inset: 0; 
+            background-image: url('https://commons.wikimedia.org/wiki/Special:FilePath/Vande_Bharat_Express_at_maximum_speed.jpg'); 
+            background-size: cover; 
+            background-position: center right; 
+            background-blend-mode: multiply; 
+            background-color: rgba(250, 246, 242, 0.45); 
+            z-index: 0; 
+            filter: grayscale(10%) sepia(10%); 
+        }
+
+        /* Two-Column Structured Dashboard (No Overlaps) */
+        .dashboard-container {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            gap: 40px;
+            padding: 36px 44px;
+            flex-grow: 1;
+        }
+
+        .dashboard-left {
+            width: 520px;
+            max-width: 100%;
+            flex-shrink: 0;
+        }
+
+        .dashboard-right {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-end;
+            text-align: right;
+            min-width: 320px;
+        }
+
+        /* Swiss Styled Widget */
+        .widget { 
+            width: 100%; 
+            background: var(--surface); 
+            border: 2px solid var(--ink); 
+            box-shadow: 10px 10px 0 rgba(30, 41, 59, 0.15); 
+        }
+
+        .widget-tabs { 
+            display: flex; 
+            border-bottom: 1px solid var(--line-strong); 
+            background: var(--paper); 
+        }
+
+        .tab { 
+            flex: 1; 
+            padding: 14px 10px; 
+            text-align: center; 
+            font-size: 13px; 
+            font-weight: 700; 
+            color: var(--ink-muted); 
+            text-transform: uppercase; 
+            cursor: pointer; 
+            border-right: 1px solid var(--line-strong); 
+            letter-spacing: 0.05em; 
+            transition: all 0.15s; 
+        }
+
+        .tab:last-child { border-right: none; }
+        .tab:hover { color: var(--ink); background: #ebf0ee; }
+        .tab.active { background: var(--surface); color: var(--ink); border-bottom: 3px solid var(--accent-blush); margin-bottom: -1px; }
+        
+        .widget-body { padding: 28px; }
+        .widget-title { font-family: var(--font-script); font-size: 34px; margin-bottom: 20px; text-align: center; color: var(--ink); }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+        .input-group { position: relative; }
+        .input-group.full { grid-column: 1 / -1; }
+        label { display: block; font-size: 11px; color: var(--ink-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        input[type="text"], input[type="date"], select { width: 100%; height: 44px; border: 1px solid var(--line-strong); background: var(--surface); padding: 0 14px; font-family: var(--font-grotesque); font-size: 14px; color: var(--ink); outline: none; border-radius: 0; transition: border-color 0.15s; }
+        input:focus, select:focus { border-color: var(--accent-blush); }
+        
+        .swap-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 32px; height: 32px; background: var(--surface); border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5; margin-top: 10px; font-weight: bold; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, background 0.15s; }
+        .swap-btn:hover { background: var(--paper); transform: translate(-50%, -50%) rotate(180deg); }
+        
+        .checkbox-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink); font-weight: 500; cursor: pointer; }
+        input[type="checkbox"] { appearance: none; width: 18px; height: 18px; border: 1px solid var(--line-strong); background: var(--paper); cursor: pointer; display: inline-grid; place-content: center; }
+        input[type="checkbox"]:checked { background: var(--accent-blush); border-color: var(--accent-blush); }
+        input[type="checkbox"]:checked::before { content: "✓"; color: white; font-size: 12px; font-weight: bold; }
+
+        .btn-search { width: 100%; height: 50px; background: var(--accent-blush); color: var(--surface); border: none; border-radius: 6px; font-family: var(--font-grotesque); font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; box-shadow: 0 4px 0 #C2410C; transform: translateY(0); transition: transform 0.1s, box-shadow 0.1s, background-color 0.15s; }
+        .btn-search:hover { transform: translateY(2px); box-shadow: 0 2px 0 #C2410C; background-color: var(--accent-blush-hover); }
+        .btn-search:active { transform: translateY(4px); box-shadow: 0 0 0 #C2410C; }
+
+        /* Right Hero Section */
+        .hero-brand {
+            padding: 8px 0;
+        }
+
+        .hero-title { 
+            font-family: var(--font-script); 
+            font-size: clamp(40px, 4.5vw, 68px); 
+            color: var(--ink); 
+            line-height: 1; 
+            letter-spacing: 0.02em; 
+            text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9);
+        }
+
+        .hero-tagline { 
+            font-size: 16px; 
+            color: var(--ink-muted); 
+            letter-spacing: 0.12em; 
+            margin-top: 8px; 
+            text-transform: uppercase; 
+            font-weight: 700; 
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+        }
+
+        .hero-meta {
+            font-size: 12px;
+            color: var(--ink-muted);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* Quick Feature Cards Grid */
+        .quick-services-section {
+            width: 100%;
+            max-width: 480px;
+            margin-top: 32px;
+        }
+
+        .services-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            text-align: right;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--line-strong);
+            padding: 12px 14px;
+            text-decoration: none;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.06);
+            transition: all 0.15s ease;
+            text-align: left;
+            border-radius: 4px;
+        }
+
+        .service-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 4px 5px 0 rgba(0,0,0,0.1);
+            border-color: var(--accent-blush);
+        }
+
+        .service-card-icon {
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .service-card-title {
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--ink);
+        }
+
+        .service-card-desc {
+            font-size: 10px;
+            color: var(--ink-muted);
+            margin-top: 2px;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1120px) {
+            .dashboard-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 32px;
+                padding: 24px 20px;
+            }
+            .dashboard-left {
+                width: 100%;
+                max-width: 520px;
+            }
+            .dashboard-right {
+                align-items: center;
+                text-align: center;
+                width: 100%;
+            }
+            .services-label {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="main-sidebar">
+        <a href="index.html" class="sidebar-logo">
+            IRCTC <span class="badge-ir">OFFICIAL</span>
+        </a>
+        <ul class="nav-menu">
+            <li><a href="index.html" class="nav-item active">Book Ticket</a></li>
+            <li><a href="trains.html" class="nav-item">Search Trains</a></li>
+            <li><a href="profile.html" class="nav-item">PNR Enquiry</a></li>
+            <li><a href="charts.html" class="nav-item">Charts / Vacancy</a></li>
+            
+            <li class="nav-section"><div class="nav-label">Services</div></li>
+            <li><a href="ecatering.html" class="nav-item">E-Catering <span class="nav-badge">HOT</span></a></li>
+            <li><a href="rooms.html" class="nav-item">Retiring Rooms</a></li>
+            <li><a href="places.html" class="nav-item">Tourism</a></li>
+            
+            <li class="nav-section"><div class="nav-label">Account</div></li>
+            <li><a href="profile.html" class="nav-item">My Bookings</a></li>
+            <li><a href="master_list.html" class="nav-item">Master List</a></li>
+            <li><a href="loyalty.html" class="nav-item">Loyalty</a></li>
+            <li><a href="wallet.html" class="nav-item">E-Wallet</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <main class="main-wrapper">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="btn-sidebar-toggle" onclick="toggleSidebar()" title="Toggle Navigation Sidebar">☰</button>
+                <button class="btn-back" onclick="history.back()">← Back</button>
+                <div class="ticker">
+                    <span class="ticker-badge">Live</span>
+                    <span>Vande Bharat & Amrit Bharat Special Bookings Now Open</span>
+                </div>
+            </div>
+            
+            <div class="top-links">
+                <span id="live-clock">18-Oct-2026 [14:49:04]</span>
+                <span style="color: var(--line-strong);">|</span>
+                
+                <div class="font-size-ctrl">
+                    <button title="Decrease font size" onclick="IRCTC.setFontSize('13px')">A-</button>
+                    <button title="Default font size" onclick="IRCTC.setFontSize('14px')" class="active">A</button>
+                    <button title="Increase font size" onclick="IRCTC.setFontSize('16px')">A+</button>
+                </div>
+                
+                <span style="color: var(--line-strong);">|</span>
+                <a href="javascript:void(0)" onclick="toggleLanguageNotice()">हिंदी</a>
+                <span style="color: var(--line-strong);">|</span>
+
+                <div id="header-user-slot"></div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <div class="bg-image"></div>
+            
+            <div class="dashboard-container">
+                <!-- Left Column: The Booking Widget -->
+                <div class="dashboard-left">
+                    <div class="widget">
+                        <div class="widget-tabs">
+                            <div class="tab" id="tab-pnr" onclick="switchWidgetTab('pnr')">PNR Status</div>
+                            <div class="tab" id="tab-charts" onclick="window.location.href='charts.html'">Charts/Vacancy</div>
+                            <div class="tab active" id="tab-book" onclick="switchWidgetTab('book')">Book Ticket</div>
+                        </div>
+                        
+                        <!-- Book Ticket Panel -->
+                        <div class="widget-body" id="panel-book">
+                            <h2 class="widget-title">Book Ticket</h2>
+                            
+                            <div class="form-grid" style="position: relative;">
+                                <div class="input-group">
+                                    <label for="from-station">From</label>
+                                    <input type="text" id="from-station" data-station-search="true" value="New Delhi (NDLS)" placeholder="Station Name or Code" autocomplete="off">
+                                </div>
+                                <div class="input-group">
+                                    <label for="to-station">To</label>
+                                    <input type="text" id="to-station" data-station-search="true" value="Mumbai Central (BCT)" placeholder="Station Name or Code" autocomplete="off">
+                                </div>
+                                <button type="button" class="swap-btn" title="Swap Stations" onclick="swapStations()">⇄</button>
+                            </div>
+                            
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label for="journey-date">Date of Journey</label>
+                                    <input type="date" id="journey-date">
+                                </div>
+                                <div class="input-group">
+                                    <label for="journey-class">Class</label>
+                                    <select id="journey-class">
+                                        <option value="ALL">All Classes</option>
+                                        <option value="1A">AC First Class (1A)</option>
+                                        <option value="2A">AC 2 Tier (2A)</option>
+                                        <option value="3A">AC 3 Tier (3A)</option>
+                                        <option value="EC">Exec. Chair Car (EC)</option>
+                                        <option value="CC">AC Chair Car (CC)</option>
+                                        <option value="SL">Sleeper (SL)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="input-group full">
+                                <label for="journey-quota">Quota</label>
+                                <select id="journey-quota">
+                                    <option value="GENERAL">GENERAL</option>
+                                    <option value="TATKAL">TATKAL</option>
+                                    <option value="LADIES">LADIES</option>
+                                    <option value="SENIOR CITIZEN">SENIOR CITIZEN</option>
+                                    <option value="PREMIUM TATKAL">PREMIUM TATKAL</option>
+                                </select>
+                            </div>
+
+                            <div class="checkbox-group">
+                                <label class="checkbox-label"><input type="checkbox" id="chk-pwd"> Person With Disability</label>
+                                <label class="checkbox-label"><input type="checkbox" id="chk-flexible" checked> Flexible With Date</label>
+                                <label class="checkbox-label"><input type="checkbox" id="chk-avail"> Train with Available Berth</label>
+                                <label class="checkbox-label"><input type="checkbox" id="chk-pass"> Railway Pass Concession</label>
+                            </div>
+
+                            <button class="btn-search" onclick="executeSearch()">Search Trains</button>
+                        </div>
+
+                        <!-- PNR Status Quick Tab -->
+                        <div class="widget-body" id="panel-pnr" style="display: none;">
+                            <h2 class="widget-title">Quick PNR Enquiry</h2>
+                            <p style="font-size: 13px; color: var(--ink-muted); margin-bottom: 20px; text-align: center;">Enter your 10-digit Passenger Name Record (PNR) number to check current live status.</p>
+                            
+                            <div class="input-group full" style="margin-bottom: 20px;">
+                                <label for="quick-pnr-input">10-Digit PNR Number</label>
+                                <input type="text" id="quick-pnr-input" maxlength="10" placeholder="e.g. 8472910472 or 2938471625" style="font-family: monospace; font-size: 18px; letter-spacing: 0.15em;">
+                            </div>
+
+                            <button class="btn-search" onclick="checkQuickPnr()">Check Status</button>
+
+                            <div style="margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px;">
+                                <span style="font-size: 11px; text-transform: uppercase; color: var(--ink-muted); font-weight: 700;">Demo PNRs:</span>
+                                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                    <button type="button" class="btn-secondary" style="font-size: 11px; padding: 6px 12px;" onclick="document.getElementById('quick-pnr-input').value='8472910472'">8472910472 (CNF)</button>
+                                    <button type="button" class="btn-secondary" style="font-size: 11px; padding: 6px 12px;" onclick="document.getElementById('quick-pnr-input').value='2938471625'">2938471625 (WL)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Hero Brand & Quick Travel Services Grid -->
+                <div class="dashboard-right">
+                    <div class="hero-brand">
+                        <h1 class="hero-title">Indian Railways</h1>
+                        <p class="hero-tagline">Safety &bull; Security &bull; Punctuality</p>
+                        <div class="hero-meta">National Carrier of India &bull; Connecting 1.4 Billion Journeys</div>
+                    </div>
+
+                    <div class="quick-services-section">
+                        <div class="services-label">Quick Travel Services</div>
+                        <div class="services-grid">
+                            <a href="ecatering.html" class="service-card">
+                                <span class="service-card-icon">🍲</span>
+                                <div>
+                                    <div class="service-card-title">Order Food in Train</div>
+                                    <div class="service-card-desc">Delivered to seat</div>
+                                </div>
+                            </a>
+                            <a href="places.html" class="service-card">
+                                <span class="service-card-icon">👑</span>
+                                <div>
+                                    <div class="service-card-title">Maharajas' Express</div>
+                                    <div class="service-card-desc">Luxury train circuits</div>
+                                </div>
+                            </a>
+                            <a href="rooms.html" class="service-card">
+                                <span class="service-card-icon">🏨</span>
+                                <div>
+                                    <div class="service-card-title">Retiring Rooms</div>
+                                    <div class="service-card-desc">Station pods & rooms</div>
+                                </div>
+                            </a>
+                            <a href="wallet.html" class="service-card">
+                                <span class="service-card-icon">💳</span>
+                                <div>
+                                    <div class="service-card-title">IRCTC E-Wallet</div>
+                                    <div class="service-card-desc">Instant 1-click checkout</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="shared.js"></script>
+    <script>
+        // Set default journey date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const yyyy = tomorrow.getFullYear();
+        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const dd = String(tomorrow.getDate()).padStart(2, '0');
+        document.getElementById("journey-date").value = `${yyyy}-${mm}-${dd}`;
+        document.getElementById("journey-date").min = new Date().toISOString().split("T")[0];
+
+        function toggleSidebar() {
+            if (window.innerWidth <= 860) {
+                document.body.classList.toggle('sidebar-open');
+            } else {
+                document.body.classList.toggle('sidebar-collapsed');
+            }
+        }
+
+        function swapStations() {
+            const from = document.getElementById("from-station");
+            const to = document.getElementById("to-station");
+            const temp = from.value;
+            from.value = to.value;
+            to.value = temp;
+            IRCTC.showToast("Stations swapped", "info");
+        }
+
+        function switchWidgetTab(tabName) {
+            document.querySelectorAll(".widget-tabs .tab").forEach(t => t.classList.remove("active"));
+            if (tabName === 'book') {
+                document.getElementById("tab-book").classList.add("active");
+                document.getElementById("panel-book").style.display = "block";
+                document.getElementById("panel-pnr").style.display = "none";
+            } else if (tabName === 'pnr') {
+                document.getElementById("tab-pnr").classList.add("active");
+                document.getElementById("panel-book").style.display = "none";
+                document.getElementById("panel-pnr").style.display = "block";
+            }
+        }
+
+        function checkQuickPnr() {
+            const pnr = document.getElementById("quick-pnr-input").value.trim();
+            if (!pnr || pnr.length !== 10) {
+                IRCTC.showToast("Please enter a valid 10-digit PNR number", "error");
+                return;
+            }
+            window.location.href = `profile.html?pnr=${encodeURIComponent(pnr)}`;
+        }
+
+        function executeSearch() {
+            const from = document.getElementById("from-station").value.trim();
+            const to = document.getElementById("to-station").value.trim();
+            const date = document.getElementById("journey-date").value;
+            const trainClass = document.getElementById("journey-class").value;
+            const quota = document.getElementById("journey-quota").value;
+            const availableOnly = document.getElementById("chk-avail").checked;
+
+            if (!from || !to) {
+                IRCTC.showToast("Please specify both Origin and Destination stations", "error");
+                return;
+            }
+
+            if (from.toLowerCase() === to.toLowerCase()) {
+                IRCTC.showToast("Origin and Destination stations cannot be the same", "error");
+                return;
+            }
+
+            const searchParams = new URLSearchParams({
+                from: from,
+                to: to,
+                date: date,
+                class: trainClass,
+                quota: quota,
+                availableOnly: availableOnly
+            });
+
+            // Store in sessionStorage for seamless cross-page sync
+            sessionStorage.setItem("irctc_active_search", JSON.stringify({
+                from, to, date, trainClass, quota, availableOnly
+            }));
+
+            IRCTC.showToast("Searching available trains...", "info");
+            setTimeout(() => {
+                window.location.href = `trains.html?${searchParams.toString()}`;
+            }, 300);
+        }
+
+        function toggleLanguageNotice() {
+            IRCTC.showToast("हिंदी भाषा सहायता सक्रिय है। (Hindi language active)", "info");
+        }
+    </script>
+</body>
+</html>
